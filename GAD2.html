@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Questionário PHQ-2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fffef8;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #333;
+    }
+    header, footer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img, footer img {
+      max-width: 200px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .intro {
+      margin-bottom: 30px;
+      padding: 15px;
+      background: #fdf3cc;
+      border-left: 5px solid #fbc02d;
+      border-radius: 5px;
+    }
+    .question {
+      margin-bottom: 25px;
+    }
+    .question p {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      padding: 6px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .options input {
+      margin-right: 8px;
+    }
+    .options label:hover {
+      background: #fdf3cc;
+    }
+    button {
+      display: block;
+      margin: 0 auto;
+      background: #fbc02d;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #f9a825;
+    }
+    #resultado {
+      margin-top: 25px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .alerta {
+      background: #ffebee;
+      color: #b71c1c;
+    }
+    .ok {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="LOGO_SETEMBRO-removebg-preview.png" alt="Setembro Amarelo - Todos pela Vida">
+  </header>
+
+  <h2>Questionário PHQ-2</h2>
+
+  <div class="intro">
+    <p><strong>O PHQ-2 (Patient Health Questionnaire-2)</strong> é um questionário rápido utilizado para identificar possíveis sinais de depressão.</p>
+    <p>Ele consiste em apenas duas perguntas que avaliam a frequência de sentimentos de desânimo, tristeza ou falta de interesse nas atividades ao longo das últimas duas semanas.</p>
+    <p><em>Não existem respostas certas ou erradas: o importante é ser sincero sobre como você se sente. Esse questionário ajuda a indicar se uma avaliação mais detalhada pode ser necessária.</em></p>
+    <p>Para responder, pense nas <strong>últimas 2 semanas</strong>, com que frequência você:</p>
+  </div>
+
+  <form id="phq2Form">
+    <div class="question">
+      <p>Nome completo:</p>
+      <input type="text" id="nome" required placeholder="Digite seu nome">
+    </div>
+
+    <div class="question">
+      <p>1. Sentiu pouco interesse ou prazer em fazer as coisas?</p>
+      <div class="options">
+        <label><input type="radio" name="q1" value="0"> Nenhuma vez</label>
+        <label><input type="radio" name="q1" value="1"> Vários dias</label>
+        <label><input type="radio" name="q1" value="2"> Mais da metade dos dias</label>
+        <label><input type="radio" name="q1" value="3"> Quase todos os dias</label>
+      </div>
+    </div>
+
+    <div class="question">
+      <p>2. Sentiu-se para baixo, deprimido(a) ou sem esperança?</p>
+      <div class="options">
+        <label><input type="radio" name="q2" value="0"> Nenhuma vez</label>
+        <label><input type="radio" name="q2" value="1"> Vários dias</label>
+        <label><input type="radio" name="q2" value="2"> Mais da metade dos dias</label>
+        <label><input type="radio" name="q2" value="3"> Quase todos os dias</label>
+      </div>
+    </div>
+
+    <button type="button" onclick="calcular()">Ver Resultado</button>
+  </form>
+
+  <div id="resultado"></div>
+
+  <footer>
+    <img src="Logo.png" alt="Logo da Empresa">
+  </footer>
+
+  <script>
+    function calcular() {
+      let nome = document.getElementById("nome").value.trim();
+      let q1 = document.querySelector('input[name="q1"]:checked');
+      let q2 = document.querySelector('input[name="q2"]:checked');
+      let resultado = document.getElementById("resultado");
+
+      if (!nome || !q1 || !q2) {
+        alert("Por favor, preencha seu nome e responda todas as perguntas.");
+        return;
+      }
+
+      let score = parseInt(q1.value) + parseInt(q2.value);
+
+      // Mostra o resultado na tela
+      if (score >= 3) {
+        resultado.className = "alerta";
+        resultado.innerHTML = `<strong>${nome}</strong><br>Pontuação: ${score}<br>⚠️ Sugere sintomas de depressão. Procure um profissional de saúde.`;
+      } else {
+        resultado.className = "ok";
+        resultado.innerHTML = `<strong>${nome}</strong><br>Pontuação: ${score}<br>✅ Sem indicativos significativos de depressão.`;
+      }
+
+      // Enviar para Google Sheets
+      fetch("https://script.google.com/macros/s/AKfycbxCnvgyXj2GvxknLUmhbaQvTNIeQKQ8mw3rphfq7w_WgEU7XnGWcSDmCRg3FPH1U6n7qg/exec", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: nome,
+          q1: q1.value,
+          q2: q2.value,
+          score: score
+        })
+      })
+      .then(res => res.text())
+      .then(res => console.log("Salvo no Sheets:", res))
+      .catch(err => console.error("Erro:", err));
+    }
+  </script>
+</body>
+</html>
+
